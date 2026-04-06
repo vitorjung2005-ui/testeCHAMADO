@@ -249,26 +249,6 @@
       line-height: 1.6;
     }
     .qr-info strong { color: var(--text); font-weight: 600; }
-
-    /* Config notice */
-    .config-notice {
-      background: #FAEEDA;
-      border: 0.5px solid #BA7517;
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.25rem;
-      font-size: 13px;
-      color: #854F0B;
-      line-height: 1.6;
-    }
-    .config-notice strong { font-weight: 600; }
-    .config-notice code {
-      background: rgba(0,0,0,0.08);
-      padding: 1px 5px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 12px;
-    }
   </style>
 </head>
 <body>
@@ -289,7 +269,6 @@
     <div class="tab" onclick="switchTab('qr')">QR Codes</div>
   </div>
 
-  <!-- ========== FORM VIEW ========== -->
   <div id="view-form" class="view active">
 
     <div class="line-badge" id="line-badge">Linha 1</div>
@@ -299,7 +278,7 @@
     <div id="alert-success" class="alert success">
       <div class="alert-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="alert-title">Chamado aberto com sucesso!</div>
-      <div class="alert-sub">Email enviado para <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="402d29346e332532362923252425332b002d21272e216e232f2d">[email&#160;protected]</a></div>
+      <div class="alert-sub">Email enviado para a equipe de suporte.</div>
     </div>
 
     <div id="alert-error" class="alert error">
@@ -312,13 +291,7 @@
       <div class="field">
         <label>Linha de produção</label>
         <select id="field-line">
-          <option value="Linha 1">Linha 1</option>
-          <option value="Linha 2">Linha 2</option>
-          <option value="Linha 3">Linha 3</option>
-          <option value="Linha 4">Linha 4</option>
-          <option value="Linha 5">Linha 5</option>
-          <option value="Linha 6">Linha 6</option>
-        </select>
+          </select>
       </div>
 
       <div class="field">
@@ -355,17 +328,12 @@
     </div>
 
     <button class="submit-btn" id="submit-btn" onclick="submitTicket()">Abrir chamado</button>
-    <p class="submit-hint">Será enviado de produçã<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f897b88b8d999d95888a9d8b99d69b9795">[email&#160;protected]</a> para <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bed3d7ca90cddbccc8d7dddbdadbcdd5fed3dfd9d0df90ddd1d3">[email&#160;protected]</a></p>
+    <p class="submit-hint">Será enviado para mit.servicedesk@magna.com</p>
   </div>
 
-  <!-- ========== QR VIEW ========== -->
   <div id="view-qr" class="view">
     <h1>QR Codes das linhas</h1>
     <p class="subtitle">Imprima e afixe cada QR Code na linha correspondente. Ao escanear, o operador vai direto para o formulário da linha correta.</p>
-
-    <div class="config-notice">
-      <strong>URL do site:</strong> substitua o valor de <code>BASE_URL</code> no código pelo endereço real após publicar no GitHub Pages ou Vercel.
-    </div>
 
     <div class="qr-grid" id="qr-grid"></div>
 
@@ -376,24 +344,50 @@
 
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
   // ================================================
-  // CONFIGURAÇÃO — altere estes valores
+  // CONFIGURAÇÃO
   // ================================================
   const EMAILJS_PUBLIC_KEY  = 'm3eKTfSB0VqQXTKNf';
   const EMAILJS_SERVICE_ID  = 'service_orzpcie';
   const EMAILJS_TEMPLATE_ID = 'template_nk1u6e5';
-  const BASE_URL = 'https://SEU-USUARIO.github.io/SEU-REPO'; // ← substitua após publicar no GitHub
+  
+  // Total de linhas que o sistema deve gerenciar
+  const TOTAL_LINHAS = 40; 
+
+  // Detecta automaticamente a URL base onde o site está rodando
+  const BASE_URL = window.location.origin + window.location.pathname;
   // ================================================
 
   emailjs.init(EMAILJS_PUBLIC_KEY);
 
   let selectedPrio = 'medium';
 
-  // Lê parâmetro ?linha=N da URL (vem do QR Code)
+  // Inicializa o dropdown de linhas dinamicamente
+  function initLineDropdown() {
+    const select = document.getElementById('field-line');
+    for (let i = 1; i <= TOTAL_LINHAS; i++) {
+      const opt = document.createElement('option');
+      opt.value = 'Linha ' + i;
+      opt.textContent = 'Linha ' + i;
+      select.appendChild(opt);
+    }
+  }
+
+  // Executa assim que a página carrega
+  initLineDropdown();
+
+  // Lê parâmetro ?linha=N da URL
   const params = new URLSearchParams(window.location.search);
   const linhaParam = params.get('linha');
-  if (linhaParam) setLine(parseInt(linhaParam));
+  
+  if (linhaParam && linhaParam <= TOTAL_LINHAS && linhaParam >= 1) {
+      setLine(parseInt(linhaParam));
+      document.getElementById('field-line').value = 'Linha ' + linhaParam;
+  } else {
+      // Se não vier parâmetro, define a Linha 1 como padrão visual
+      setLine(1);
+  }
 
   function switchTab(tab) {
     document.querySelectorAll('.tab').forEach((t, i) => {
@@ -411,6 +405,12 @@
     const badge = document.getElementById('line-badge');
     if (badge) badge.textContent = val;
   }
+
+  // Atualiza a badge quando o operador muda manualmente
+  document.getElementById('field-line').addEventListener('change', function(e) {
+      const numLinha = e.target.value.replace(/\D/g, '');
+      setLine(numLinha);
+  });
 
   function setPrio(el) {
     document.querySelectorAll('.prio-btn').forEach(b => b.classList.remove('active'));
@@ -454,7 +454,7 @@
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
       showAlert('success');
       btn.innerHTML = 'Chamado enviado!';
-      // Limpa o formulário após 4s
+      
       setTimeout(() => {
         showAlert(null);
         btn.textContent = 'Abrir chamado';
@@ -472,12 +472,37 @@
     }
   }
 
+  // Gera os 40 QR Codes dinamicamente
   function buildQrGrid() {
     const grid = document.getElementById('qr-grid');
     if (grid.childElementCount > 0) return;
-    const lines = ['Linha 1','Linha 2','Linha 3','Linha 4','Linha 5','Linha 6'];
-    lines.forEach((label, i) => {
-      const n = i + 1;
+    
+    for (let i = 1; i <= TOTAL_LINHAS; i++) {
+      const n = i;
+      const label = 'Linha ' + n;
       const card = document.createElement('div');
       card.className = 'qr-card';
-      card.innerHTML = `<div class="qr-card-label">${
+      
+      card.innerHTML = `
+        <div class="qr-card-label">${label}</div>
+        <div class="qr-canvas-wrap" id="qr-code-${n}"></div>
+        <div class="qr-card-hint">Salvar / Imprimir</div>
+      `;
+      grid.appendChild(card);
+
+      const cleanBaseUrl = BASE_URL.replace(/\/$/, ""); 
+      const urlDestino = `${cleanBaseUrl}?linha=${n}`;
+
+      new QRCode(document.getElementById(`qr-code-${n}`), {
+        text: urlDestino,
+        width: 72,
+        height: 72,
+        colorDark : "#1a1a18",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+      });
+    }
+  }
+</script>
+</body>
+</html>
