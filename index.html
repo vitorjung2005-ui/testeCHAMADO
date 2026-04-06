@@ -278,7 +278,7 @@
     <div id="alert-success" class="alert success">
       <div class="alert-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="alert-title">Chamado aberto com sucesso!</div>
-      <div class="alert-sub">Email enviado para a equipe de suporte.</div>
+      <div class="alert-sub">Email enviado para vitorjung2005@hotmail.com</div>
     </div>
 
     <div id="alert-error" class="alert error">
@@ -328,7 +328,7 @@
     </div>
 
     <button class="submit-btn" id="submit-btn" onclick="submitTicket()">Abrir chamado</button>
-    <p class="submit-hint">Será enviado para mit.servicedesk@magna.com</p>
+    <p class="submit-hint">Será enviado para vitorjung2005@hotmail.com</p>
   </div>
 
   <div id="view-qr" class="view">
@@ -447,13 +447,16 @@
       descricao:  desc,
       operador:   name,
       data_hora:  new Date().toLocaleString('pt-BR'),
-      destino:    'mit.servicedesk@magna.com'
+      destino:    'vitorjung2005@hotmail.com'
     };
 
     try {
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
       showAlert('success');
       btn.innerHTML = 'Chamado enviado!';
+
+      // POP-UP DE SUCESSO
+      alert('Sucesso! O chamado foi enviado para vitorjung2005@hotmail.com.');
       
       setTimeout(() => {
         showAlert(null);
