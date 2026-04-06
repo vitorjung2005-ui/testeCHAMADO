@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MIT Service Desk — Chamados de Produção</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #D85A30;
+      --accent-dark: #993C1D;
+      --accent-light: #FAECE7;
+      --success: #3B6D11;
+      --success-light: #EAF3DE;
+      --warning: #BA7517;
+      --warning-light: #FAEEDA;
+      --danger: #A32D2D;
+      --danger-light: #FCEBEB;
+      --bg: #ffffff;
+      --bg-2: #f5f4f0;
+      --text: #1a1a18;
+      --text-2: #6b6a66;
+      --border: rgba(0,0,0,0.12);
+      --border-2: rgba(0,0,0,0.22);
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a;
+        --bg-2: #252522;
+        --text: #f0ede8;
+        --text-2: #9a9892;
+        --border: rgba(255,255,255,0.1);
+        --border-2: rgba(255,255,255,0.2);
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-2);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .wrapper {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+    .header-icon {
+      width: 42px; height: 42px;
+      background: var(--accent);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-icon svg { width: 22px; height: 22px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .header-title { font-size: 16px; font-weight: 600; color: var(--text); }
+    .header-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3px;
+      margin-bottom: 1.25rem;
+    }
+    .tab {
+      flex: 1; text-align: center;
+      font-size: 13px; font-weight: 500;
+      padding: 8px 4px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-2);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .tab.active {
+      background: var(--bg-2);
+      color: var(--text);
+      border: 0.5px solid var(--border);
+    }
+
+    /* Line badge */
+    .line-badge {
+      display: inline-block;
+      background: var(--accent-light);
+      color: var(--accent-dark);
+      font-size: 12px; font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 0.6rem;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 0.3rem; color: var(--text); }
+    .subtitle { font-size: 13px; color: var(--text-2); margin-bottom: 1.5rem; line-height: 1.5; }
+
+    /* Card */
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 1rem; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 11px; font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    select, textarea, input[type=text] {
+      width: 100%;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg-2);
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9892' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
+    select:focus, textarea:focus, input:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
+
+    /* Priority */
+    .prio-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .prio-btn {
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--radius);
+      padding: 9px 4px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px; font-weight: 500;
+      background: var(--bg-2);
+      color: var(--text-2);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .prio-btn[data-prio="low"].active   { background: #EAF3DE; color: #3B6D11; border-color: #639922; }
+    .prio-btn[data-prio="medium"].active { background: #FAEEDA; color: #854F0B; border-color: #BA7517; }
+    .prio-btn[data-prio="high"].active   { background: #FCEBEB; color: #A32D2D; border-color: #E24B4A; }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+    .submit-btn:hover:not(:disabled) { background: var(--accent-dark); }
+    .submit-btn:active:not(:disabled) { transform: scale(0.99); }
+    .submit-btn:disabled { background: var(--bg-2); color: var(--text-2); cursor: default; border: 0.5px solid var(--border); }
+
+    .submit-hint {
+      font-size: 11px;
+      color: var(--text-2);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* Alerts */
+    .alert {
+      display: none;
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .alert.success { background: var(--success-light); border: 0.5px solid #639922; }
+    .alert.error   { background: var(--danger-light);  border: 0.5px solid #E24B4A; }
+    .alert-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; }
+    .alert.success .alert-icon { background: var(--success); }
+    .alert.error   .alert-icon { background: var(--danger); }
+    .alert-icon svg { width: 20px; height: 20px; fill: none; stroke: white; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .alert-title { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+    .alert.success .alert-title { color: var(--success); }
+    .alert.error   .alert-title { color: var(--danger); }
+    .alert-sub { font-size: 13px; }
+    .alert.success .alert-sub { color: var(--success); opacity: 0.8; }
+    .alert.error   .alert-sub { color: var(--danger); opacity: 0.8; }
+
+    /* Spinner */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Views */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* QR section */
+    .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 1rem; }
+    .qr-card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 8px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .qr-card:hover { border-color: var(--accent); }
+    .qr-card-label { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+    .qr-canvas-wrap { width: 72px; height: 72px; margin: 0 auto; }
+    .qr-canvas-wrap canvas { width: 72px !important; height: 72px !important; }
+    .qr-card-hint { font-size: 10px; color: var(--text-2); margin-top: 6px; }
+
+    .qr-info {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-top: 1rem;
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+    .qr-info strong { color: var(--text); font-weight: 600; }
+
+    /* Config notice */
+    .config-notice {
+      background: #FAEEDA;
+      border: 0.5px solid #BA7517;
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      font-size: 13px;
+      color: #854F0B;
+      line-height: 1.6;
+    }
+    .config-notice strong { font-weight: 600; }
+    .config-notice code {
+      background: rgba(0,0,0,0.08);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    </div>
+    <div>
+      <div class="header-title">MIT Service Desk</div>
+      <div class="header-sub">Sistema de Chamados — Linhas de Produção</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('form')">Abrir chamado</div>
+    <div class="tab" onclick="switchTab('qr')">QR Codes</div>
+  </div>
+
+  <!-- ========== FORM VIEW ========== -->
+  <div id="view-form" class="view active">
+
+    <div class="line-badge" id="line-badge">Linha 1</div>
+    <h1>Reportar problema</h1>
+    <p class="subtitle">Preencha o formulário abaixo. O chamado será enviado automaticamente para o service desk.</p>
+
+    <div id="alert-success" class="alert success">
+      <div class="alert-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="alert-title">Chamado aberto com sucesso!</div>
+      <div class="alert-sub">Email enviado para <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="402d29346e332532362923252425332b002d21272e216e232f2d">[email&#160;protected]</a></div>
+    </div>
+
+    <div id="alert-error" class="alert error">
+      <div class="alert-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      <div class="alert-title">Erro ao enviar o chamado</div>
+      <div class="alert-sub" id="error-msg">Verifique a conexão e tente novamente.</div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label>Linha de produção</label>
+        <select id="field-line">
+          <option value="Linha 1">Linha 1</option>
+          <option value="Linha 2">Linha 2</option>
+          <option value="Linha 3">Linha 3</option>
+          <option value="Linha 4">Linha 4</option>
+          <option value="Linha 5">Linha 5</option>
+          <option value="Linha 6">Linha 6</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Categoria do problema</label>
+        <select id="field-category">
+          <option value="">Selecione...</option>
+          <option value="Equipamento / Máquina">Equipamento / Máquina</option>
+          <option value="Sistema / Software">Sistema / Software</option>
+          <option value="Elétrica / Infraestrutura">Elétrica / Infraestrutura</option>
+          <option value="Qualidade / Produto">Qualidade / Produto</option>
+          <option value="Segurança">Segurança</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Descrição do problema</label>
+        <textarea id="field-desc" placeholder="Descreva detalhadamente o que está acontecendo..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Prioridade</label>
+        <div class="prio-row">
+          <div class="prio-btn" data-prio="low"    onclick="setPrio(this)">Baixa</div>
+          <div class="prio-btn active" data-prio="medium" onclick="setPrio(this)">Média</div>
+          <div class="prio-btn" data-prio="high"   onclick="setPrio(this)">Alta</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Seu nome (opcional)</label>
+        <input type="text" id="field-name" placeholder="Nome do operador...">
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitTicket()">Abrir chamado</button>
+    <p class="submit-hint">Será enviado de produçã<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f897b88b8d999d95888a9d8b99d69b9795">[email&#160;protected]</a> para <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bed3d7ca90cddbccc8d7dddbdadbcdd5fed3dfd9d0df90ddd1d3">[email&#160;protected]</a></p>
+  </div>
+
+  <!-- ========== QR VIEW ========== -->
+  <div id="view-qr" class="view">
+    <h1>QR Codes das linhas</h1>
+    <p class="subtitle">Imprima e afixe cada QR Code na linha correspondente. Ao escanear, o operador vai direto para o formulário da linha correta.</p>
+
+    <div class="config-notice">
+      <strong>URL do site:</strong> substitua o valor de <code>BASE_URL</code> no código pelo endereço real após publicar no GitHub Pages ou Vercel.
+    </div>
+
+    <div class="qr-grid" id="qr-grid"></div>
+
+    <div class="qr-info">
+      <strong>Como imprimir:</strong> Clique com o botão direito em cada QR Code → Salvar imagem, ou use Ctrl+P para imprimir esta página diretamente.
+    </div>
+  </div>
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // ================================================
+  // CONFIGURAÇÃO — altere estes valores
+  // ================================================
+  const EMAILJS_PUBLIC_KEY  = 'm3eKTfSB0VqQXTKNf';
+  const EMAILJS_SERVICE_ID  = 'service_orzpcie';
+  const EMAILJS_TEMPLATE_ID = 'template_nk1u6e5';
+  const BASE_URL = 'https://SEU-USUARIO.github.io/SEU-REPO'; // ← substitua após publicar no GitHub
+  // ================================================
+
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+
+  let selectedPrio = 'medium';
+
+  // Lê parâmetro ?linha=N da URL (vem do QR Code)
+  const params = new URLSearchParams(window.location.search);
+  const linhaParam = params.get('linha');
+  if (linhaParam) setLine(parseInt(linhaParam));
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0) === (tab === 'form'));
+    });
+    document.getElementById('view-form').classList.toggle('active', tab === 'form');
+    document.getElementById('view-qr').classList.toggle('active', tab === 'qr');
+    if (tab === 'qr') buildQrGrid();
+  }
+
+  function setLine(n) {
+    const val = 'Linha ' + n;
+    const sel = document.getElementById('field-line');
+    if (sel) sel.value = val;
+    const badge = document.getElementById('line-badge');
+    if (badge) badge.textContent = val;
+  }
+
+  function setPrio(el) {
+    document.querySelectorAll('.prio-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedPrio = el.dataset.prio;
+  }
+
+  function showAlert(type) {
+    document.getElementById('alert-success').style.display = 'none';
+    document.getElementById('alert-error').style.display = 'none';
+    if (type) document.getElementById('alert-' + type).style.display = 'block';
+  }
+
+  async function submitTicket() {
+    const line     = document.getElementById('field-line').value;
+    const category = document.getElementById('field-category').value;
+    const desc     = document.getElementById('field-desc').value.trim();
+    const name     = document.getElementById('field-name').value.trim() || 'Não informado';
+
+    if (!category) { alert('Selecione a categoria do problema.'); return; }
+    if (!desc)     { alert('Descreva o problema antes de enviar.'); return; }
+
+    const prioLabel = { low: 'Baixa', medium: 'Média', high: 'Alta' }[selectedPrio];
+    const btn = document.getElementById('submit-btn');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Enviando...';
+    showAlert(null);
+
+    const templateParams = {
+      linha:      line,
+      categoria:  category,
+      prioridade: prioLabel,
+      descricao:  desc,
+      operador:   name,
+      data_hora:  new Date().toLocaleString('pt-BR'),
+      destino:    'mit.servicedesk@magna.com'
+    };
+
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+      showAlert('success');
+      btn.innerHTML = 'Chamado enviado!';
+      // Limpa o formulário após 4s
+      setTimeout(() => {
+        showAlert(null);
+        btn.textContent = 'Abrir chamado';
+        btn.disabled = false;
+        document.getElementById('field-desc').value = '';
+        document.getElementById('field-category').value = '';
+        document.getElementById('field-name').value = '';
+        setPrio(document.querySelector('.prio-btn[data-prio="medium"]'));
+      }, 4000);
+    } catch (err) {
+      showAlert('error');
+      document.getElementById('error-msg').textContent = err.text || 'Verifique a conexão e tente novamente.';
+      btn.textContent = 'Abrir chamado';
+      btn.disabled = false;
+    }
+  }
+
+  function buildQrGrid() {
+    const grid = document.getElementById('qr-grid');
+    if (grid.childElementCount > 0) return;
+    const lines = ['Linha 1','Linha 2','Linha 3','Linha 4','Linha 5','Linha 6'];
+    lines.forEach((label, i) => {
+      const n = i + 1;
+      const card = document.createElement('div');
+      card.className = 'qr-card';
+      card.innerHTML = `<div class="qr-card-label">${
