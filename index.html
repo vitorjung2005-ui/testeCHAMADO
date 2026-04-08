@@ -71,9 +71,9 @@
     .header-title { font-size: 16px; font-weight: 600; color: var(--text); }
     .header-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; }
 
-    /* Tabs */
+    /* Tabs - Agora iniciam ocultas (display: none) */
     .tabs {
-      display: flex;
+      display: none; /* Escondido por padrão */
       gap: 4px;
       background: var(--bg);
       border: 0.5px solid var(--border);
@@ -264,7 +264,7 @@
     </div>
   </div>
 
-  <div class="tabs">
+  <div class="tabs" id="nav-tabs">
     <div class="tab active" onclick="switchTab('form')">Abrir chamado</div>
     <div class="tab" onclick="switchTab('qr')">QR Codes</div>
   </div>
@@ -354,7 +354,6 @@
   const EMAILJS_TEMPLATE_ID = 'template_nk1u6e5';
   const EMAIL_SUPORTE       = 'vitorjung2005@hotmail.com';
   
-  // Array com os nomes (Duplicatas foram removidas para não confundir o operador)
   const NOMES_DAS_LINHAS = [
     "5s",
     "BACK PANEL GAMMA",
@@ -425,14 +424,22 @@
     "TRAVESSA SILL 5 PW 5"
   ]; 
 
-  // Limpa o index.html da URL caso o usuário acesse direto por ele
   const BASE_URL = window.location.origin + window.location.pathname.replace(/index\.html$/i, '');
   // ================================================
 
   emailjs.init(EMAILJS_PUBLIC_KEY);
 
-  // Preenche todos os textos de email na tela de forma automática
+  // Preenche textos de email
   document.querySelectorAll('.email-suporte-text').forEach(el => el.textContent = EMAIL_SUPORTE);
+
+  // *** SISTEMA DE TABS SECRETAS PARA ADMIN ***
+  const params = new URLSearchParams(window.location.search);
+  const isAdmin = params.get('admin');
+  
+  // Se o parâmetro ?admin=1 existir, mostra a barra de abas
+  if (isAdmin === '1' || isAdmin === 'true') {
+      document.getElementById('nav-tabs').style.display = 'flex';
+  }
 
   let selectedPrio = 'medium';
 
@@ -449,7 +456,6 @@
   initLineDropdown();
 
   // Lê parâmetro ?id=N da URL
-  const params = new URLSearchParams(window.location.search);
   const idParam = params.get('id');
   
   if (idParam !== null && idParam >= 0 && idParam < NOMES_DAS_LINHAS.length) {
@@ -547,7 +553,6 @@
       const card = document.createElement('div');
       card.className = 'qr-card';
       
-      // Adicionei CSS 'title' no nome para aparecer inteiro ao passar o mouse se for muito grande
       card.innerHTML = `
         <div class="qr-card-label" title="${nome}">${nome}</div>
         <div class="qr-canvas-wrap" id="qr-code-${index}"></div>
