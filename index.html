@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MIT Service Desk — Chamados de Produção</title>
+  
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#D85A30">
+
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -71,9 +76,9 @@
     .header-title { font-size: 16px; font-weight: 600; color: var(--text); }
     .header-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; }
 
-    /* Tabs - Agora iniciam ocultas (display: none) */
+    /* Tabs ocultas por padrão (Aparece apenas com ?admin=1) */
     .tabs {
-      display: none; /* Escondido por padrão */
+      display: none; 
       gap: 4px;
       background: var(--bg);
       border: 0.5px solid var(--border);
@@ -111,7 +116,7 @@
     h1 { font-size: 22px; font-weight: 600; margin-bottom: 0.3rem; color: var(--text); }
     .subtitle { font-size: 13px; color: var(--text-2); margin-bottom: 1.5rem; line-height: 1.5; }
 
-    /* Card (Form) */
+    /* Card */
     .card {
       background: var(--bg);
       border: 0.5px solid var(--border);
@@ -145,6 +150,18 @@
       appearance: none;
       -webkit-appearance: none;
     }
+    
+    /* Novo campo de foto */
+    input[type=file] {
+      width: 100%;
+      padding: 10px;
+      font-size: 13px;
+      background: var(--bg-2);
+      border: 1px dashed var(--border-2);
+      border-radius: var(--radius);
+      color: var(--text-2);
+    }
+
     select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9892' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
     select:focus, textarea:focus, input:focus { border-color: var(--accent); }
     textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
@@ -260,7 +277,7 @@
     </div>
     <div>
       <div class="header-title">MIT Service Desk</div>
-      <div class="header-sub">Sistema de Chamados — Linhas de Produção</div>
+      <div class="header-sub">Sistema de Chamados — Produção</div>
     </div>
   </div>
 
@@ -287,9 +304,9 @@
       <div class="alert-sub" id="error-msg">Verifique a conexão e tente novamente.</div>
     </div>
 
-    <form class="card" id="form-chamado" onsubmit="event.preventDefault(); submitTicket();">
+    <form class="card" id="form-chamado">
       <div class="field">
-        <label>Linha / Local</label>
+        <label>Local / Linha</label>
         <select id="field-line" required>
           </select>
       </div>
@@ -298,18 +315,23 @@
         <label>Categoria do problema</label>
         <select id="field-category" required>
           <option value="" disabled selected>Selecione...</option>
-          <option value="Equipamento / Máquina">Equipamento / Máquina</option>
-          <option value="Sistema / Software">Sistema / Software</option>
-          <option value="Elétrica / Infraestrutura">Elétrica / Infraestrutura</option>
-          <option value="Qualidade / Produto">Qualidade / Produto</option>
-          <option value="Segurança">Segurança</option>
-          <option value="Outro">Outro</option>
+          <option value="Problema no computador">Problema no computador</option>
+          <option value="Periférico defeituoso (Mause ou teclado)">Periférico defeituoso (Mouse ou teclado)</option>
+          <option value="Problema na impressão">Problema na impressão</option>
+          <option value="Erro ao acessar PC Factory">Erro ao acessar PC Factory</option>
+          <option value="Problema com a televisão">Problema com a televisão</option>
+          <option value="Dúvidas/Outro">Dúvidas/Outro</option>
         </select>
       </div>
 
       <div class="field">
-        <label>Descrição do problema</label>
-        <textarea id="field-desc" required placeholder="Descreva detalhadamente o que está acontecendo..."></textarea>
+        <label>Descrição detalhada</label>
+        <textarea id="field-desc" required placeholder="Explique o que aconteceu..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Anexar Foto (Opcional)</label>
+        <input type="file" id="field-photo" accept="image/*" capture="environment">
       </div>
 
       <div class="field">
@@ -322,8 +344,8 @@
       </div>
 
       <div class="field">
-        <label>Seu nome (opcional)</label>
-        <input type="text" id="field-name" placeholder="Nome do operador...">
+        <label>Seu nome</label>
+        <input type="text" id="field-name" required placeholder="Nome do operador...">
       </div>
       
       <button type="submit" class="submit-btn" id="submit-btn">Abrir chamado</button>
@@ -334,7 +356,7 @@
 
   <div id="view-qr" class="view">
     <h1>QR Codes dos Locais</h1>
-    <p class="subtitle">Imprima e afixe cada QR Code na linha correspondente. Ao escanear, o operador vai direto para o formulário da linha correta.</p>
+    <p class="subtitle">Imprima e afixe cada QR Code na linha correspondente.</p>
 
     <div class="qr-grid" id="qr-grid"></div>
 
@@ -347,7 +369,7 @@
 
 <script>
   // ================================================
-  // CONFIGURAÇÃO CENTRALIZADA
+  // CONFIGURAÇÕES
   // ================================================
   const EMAILJS_PUBLIC_KEY  = 'm3eKTfSB0VqQXTKNf';
   const EMAILJS_SERVICE_ID  = 'service_orzpcie';
@@ -355,95 +377,37 @@
   const EMAIL_SUPORTE       = 'vitorjung2005@hotmail.com';
   
   const NOMES_DAS_LINHAS = [
-    "5s",
-    "BACK PANEL GAMMA",
-    "BACK PANEL HB",
-    "BACK PANEL NB",
-    "BOTINHA LH-RH",
-    "B-SUV VERDE LH",
-    "B-SUV VERDE RH",
-    "CAIXA DE RODAS GAMMA LH",
-    "CAIXA DE RODAS GAMMA RH",
-    "CAIXA DE RODAS HB LH",
-    "CAIXA DE RODAS HB LH-RH",
-    "CAIXA DE RODAS HB RH",
-    "CAIXA DE RODAS NB LH",
-    "CAIXA DE RODAS NB RH",
-    "CAVALO MARINHO LH",
-    "CAVALO MARINHO RH",
-    "COPINHO",
-    "CXRD MIG HB",
-    "EMBALAGEM P&A",
-    "EMBALAGEM PSA",
-    "EMBUCHAMENTO",
-    "FRONT PSA",
-    "GUTTER HB_ROOF HEADER",
-    "KICK PANEL HB / POCKET HB",
-    "KICK PANEL NB / PACKET SHELF",
-    "POCKET NB / BACK PANEL NB",
-    "PW - SILL ROXO LH",
-    "PW - SILL ROXO RH",
-    "PW - SILL VERDE LH",
-    "PW - SILL VERDE RH",
-    "PW _ B-SUV ROXO LH",
-    "PW _ B-SUV ROXO RH",
-    "PW _ B-SUV VERDE LH",
-    "PW _ B-SUV VERDE RH",
-    "PW PLATE - ASA_DELTA LH",
-    "PW PLATE - ASA_DELTA RH",
-    "PW PLATE GEM LH",
-    "PW PLATE GEM RH",
-    "PW06 - RAIL GAMMA LH",
-    "PW06 - RAIL GAMMA RH",
-    "PW06 - SILL 5 - CAPACETE LH",
-    "PW06 - SILL 5 - CAPACETE RH",
-    "PW06 - TV ASSOALHO (TV 4400) LH",
-    "PW06 - TV ASSOALHO (TV 4400) RH",
-    "PW07 - GUTTER LH",
-    "PW07 - GUTTER RH",
-    "PW07 - PLATE (SABONETEIRA)",
-    "PW07 - RAIL GAMMA LH",
-    "PW07 - RAIL GAMMA RH",
-    "PW07 - REAR LH (CADEIRINHA)",
-    "PW07 - REAR RH (CADEIRINHA)",
-    "RAIL GAMMA LH-RH",
-    "RAIL GEM LH-RH",
-    "REAR 2 OP.20 / 50",
-    "REAR 2 OP.40 / 60 / 70",
-    "REAR 2 RQPS - SOLDA",
-    "REAR MY19 - OP 20/40/50/60/70",
-    "REAR MY19 - OP 80/85/RETRABALHO",
-    "REAR MY19 - OP 80/85/RETRABALHO/EV",
-    "REAR MY19 - OP EV",
-    "REAR PM7 -",
-    "REAR PM7 - OP RETRABALHO/EV",
-    "ROCKER ABB LH-RH",
-    "TRAVESSA 4400",
-    "TRAVESSA DO RADIADOR",
-    "TRAVESSA SILL 5",
-    "TRAVESSA SILL 5 PW 5"
+    "5s", "BACK PANEL GAMMA", "BACK PANEL HB", "BACK PANEL NB", "BOTINHA LH-RH", 
+    "B-SUV VERDE LH", "B-SUV VERDE RH", "CAIXA DE RODAS GAMMA LH", "CAIXA DE RODAS GAMMA RH", 
+    "CAIXA DE RODAS HB LH", "CAIXA DE RODAS HB LH-RH", "CAIXA DE RODAS HB RH", "CAIXA DE RODAS NB LH", 
+    "CAIXA DE RODAS NB RH", "CAVALO MARINHO LH", "CAVALO MARINHO RH", "COPINHO", "CXRD MIG HB", 
+    "EMBALAGEM P&A", "EMBALAGEM PSA", "EMBUCHAMENTO", "FRONT PSA", "GUTTER HB_ROOF HEADER", 
+    "KICK PANEL HB / POCKET HB", "KICK PANEL NB / PACKET SHELF", "POCKET NB / BACK PANEL NB", 
+    "PW - SILL ROXO LH", "PW - SILL ROXO RH", "PW - SILL VERDE LH", "PW - SILL VERDE RH", 
+    "PW _ B-SUV ROXO LH", "PW _ B-SUV ROXO RH", "PW _ B-SUV VERDE LH", "PW _ B-SUV VERDE RH", 
+    "PW PLATE - ASA_DELTA LH", "PW PLATE - ASA_DELTA RH", "PW PLATE GEM LH", "PW PLATE GEM RH", 
+    "PW06 - RAIL GAMMA LH", "PW06 - RAIL GAMMA RH", "PW06 - SILL 5 - CAPACETE LH", 
+    "PW06 - SILL 5 - CAPACETE RH", "PW06 - TV ASSOALHO (TV 4400) LH", "PW06 - TV ASSOALHO (TV 4400) RH", 
+    "PW07 - GUTTER LH", "PW07 - GUTTER RH", "PW07 - PLATE (SABONETEIRA)", "PW07 - RAIL GAMMA LH", 
+    "PW07 - RAIL GAMMA RH", "PW07 - REAR LH (CADEIRINHA)", "PW07 - REAR RH (CADEIRINHA)", 
+    "RAIL GAMMA LH-RH", "RAIL GEM LH-RH", "REAR 2 OP.20 / 50", "REAR 2 OP.40 / 60 / 70", 
+    "REAR 2 RQPS - SOLDA", "REAR MY19 - OP 20/40/50/60/70", "REAR MY19 - OP 80/85/RETRABALHO", 
+    "REAR MY19 - OP 80/85/RETRABALHO/EV", "REAR MY19 - OP EV", "REAR PM7 -", 
+    "REAR PM7 - OP RETRABALHO/EV", "ROCKER ABB LH-RH", "TRAVESSA 4400", "TRAVESSA DO RADIADOR", 
+    "TRAVESSA SILL 5", "TRAVESSA SILL 5 PW 5"
   ]; 
 
   const BASE_URL = window.location.origin + window.location.pathname.replace(/index\.html$/i, '');
   // ================================================
 
   emailjs.init(EMAILJS_PUBLIC_KEY);
-
-  // Preenche textos de email
   document.querySelectorAll('.email-suporte-text').forEach(el => el.textContent = EMAIL_SUPORTE);
-
-  // *** SISTEMA DE TABS SECRETAS PARA ADMIN ***
-  const params = new URLSearchParams(window.location.search);
-  const isAdmin = params.get('admin');
-  
-  // Se o parâmetro ?admin=1 existir, mostra a barra de abas
-  if (isAdmin === '1' || isAdmin === 'true') {
-      document.getElementById('nav-tabs').style.display = 'flex';
-  }
 
   let selectedPrio = 'medium';
 
-  function initLineDropdown() {
+  // Quando a página carregar...
+  window.onload = () => {
+    // 1. Preenche o dropdown de linhas
     const select = document.getElementById('field-line');
     NOMES_DAS_LINHAS.forEach((nome, index) => {
       const opt = document.createElement('option');
@@ -451,18 +415,27 @@
       opt.textContent = nome; 
       select.appendChild(opt);
     });
-  }
 
-  initLineDropdown();
+    // 2. Lê a URL para selecionar a linha correta via QR Code
+    const params = new URLSearchParams(window.location.search);
+    const idParam = params.get('id');
+    if (idParam !== null && idParam >= 0 && idParam < NOMES_DAS_LINHAS.length) {
+        setLine(parseInt(idParam));
+    } else {
+        setLine(0); 
+    }
 
-  // Lê parâmetro ?id=N da URL
-  const idParam = params.get('id');
-  
-  if (idParam !== null && idParam >= 0 && idParam < NOMES_DAS_LINHAS.length) {
-      setLine(parseInt(idParam));
-  } else {
-      setLine(0); 
-  }
+    // 3. Libera a aba de Admin se a URL tiver ?admin=1
+    if (params.get('admin') === '1' || params.get('admin') === 'true') {
+        document.getElementById('nav-tabs').style.display = 'flex';
+    }
+
+    // 4. Recupera o nome do operador salvo no celular
+    const nomeSalvo = localStorage.getItem('operador_salvo');
+    if (nomeSalvo) {
+        document.getElementById('field-name').value = nomeSalvo;
+    }
+  };
 
   function switchTab(tab) {
     document.querySelectorAll('.tab').forEach((t, i) => {
@@ -496,13 +469,18 @@
     if (type) document.getElementById('alert-' + type).style.display = 'block';
   }
 
-  async function submitTicket() {
+  // Evento de envio do formulário
+  document.getElementById('form-chamado').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
     const idLinha = document.getElementById('field-line').value;
     const nomeLinhaReal = NOMES_DAS_LINHAS[idLinha];
-    
     const category = document.getElementById('field-category').value;
     const desc     = document.getElementById('field-desc').value.trim();
-    const name     = document.getElementById('field-name').value.trim() || 'Não informado';
+    const name     = document.getElementById('field-name').value.trim();
+
+    // Salva o nome no celular para a próxima vez
+    localStorage.setItem('operador_salvo', name);
 
     const prioLabel = { low: 'Baixa', medium: 'Média', high: 'Alta' }[selectedPrio];
     const btn = document.getElementById('submit-btn');
@@ -526,24 +504,29 @@
       showAlert('success');
       btn.innerHTML = 'Chamado enviado!';
       
+      // Faz o celular vibrar para dar feedback ao operador (se suportado pelo navegador)
+      if (navigator.vibrate) {
+          navigator.vibrate([200, 100, 200]);
+      }
+      
       setTimeout(() => {
         showAlert(null);
         btn.textContent = 'Abrir chamado';
         btn.disabled = false;
         
-        document.getElementById('form-chamado').reset();
+        // Limpa o form, mas mantém a linha e o nome
+        document.getElementById('field-desc').value = '';
+        document.getElementById('field-category').value = '';
+        document.getElementById('field-photo').value = ''; 
         setPrio(document.querySelector('.prio-btn[data-prio="medium"]'));
         
-        const paramAtual = new URLSearchParams(window.location.search).get('id');
-        setLine(paramAtual !== null ? parseInt(paramAtual) : 0);
       }, 4000);
     } catch (err) {
       showAlert('error');
-      document.getElementById('error-msg').textContent = err.text || 'Verifique a conexão e tente novamente.';
       btn.textContent = 'Abrir chamado';
       btn.disabled = false;
     }
-  }
+  });
 
   function buildQrGrid() {
     const grid = document.getElementById('qr-grid');
