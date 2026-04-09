@@ -3,145 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MIT Service Desk — Produção</title>
+  <title>MIT Service Desk — Operador</title>
   
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#D85A30">
-
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --accent: #D85A30; --accent-dark: #993C1D; --accent-light: #FAECE7; --success: #3B6D11; --bg: #ffffff; --bg-2: #f5f4f0; --text: #1a1a18; --text-2: #6b6a66; --border: rgba(0,0,0,0.12); --border-2: rgba(0,0,0,0.22); --radius: 10px; --radius-lg: 14px; }
-    @media (prefers-color-scheme: dark) { :root { --bg: #1c1c1a; --bg-2: #252522; --text: #f0ede8; --text-2: #9a9892; --border: rgba(255,255,255,0.1); --border-2: rgba(255,255,255,0.2); } }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-2); color: var(--text); min-height: 100vh; padding: 1rem 1rem 3rem; }
-    .wrapper { max-width: 480px; margin: 0 auto; }
-    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
-    .header-icon { width: 42px; height: 42px; background: var(--accent); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .header-icon svg { width: 22px; height: 22px; fill: none; stroke: white; stroke-width: 2; }
-    .header-title { font-size: 16px; font-weight: 600; }
-    .tabs { display: none; gap: 4px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 3px; margin-bottom: 1.25rem; }
-    .tab { flex: 1; text-align: center; font-size: 13px; font-weight: 500; padding: 8px 4px; border-radius: 8px; cursor: pointer; color: var(--text-2); transition: all 0.15s; }
-    .tab.active { background: var(--bg-2); color: var(--text); border: 0.5px solid var(--border); }
-    .line-badge { display: inline-block; background: var(--accent-light); color: var(--accent-dark); font-size: 12px; font-weight: 600; padding: 4px 14px; border-radius: 20px; margin-bottom: 0.6rem; }
-    h1 { font-size: 22px; font-weight: 600; margin-bottom: 0.3rem; }
-    .subtitle { font-size: 13px; color: var(--text-2); margin-bottom: 1.5rem; }
-    .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
-    .field { margin-bottom: 1rem; }
-    label { display: block; font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-    select, textarea, input { width: 100%; font-family: inherit; font-size: 14px; color: var(--text); background: var(--bg-2); border: 0.5px solid var(--border-2); border-radius: var(--radius); padding: 10px 12px; outline: none; transition: border-color 0.15s; }
-    input[type="file"] { padding: 8px; font-size: 12px; background: var(--bg); border: 1px dashed var(--border-2); }
+    :root { --accent: #D85A30; --bg: #ffffff; --bg-2: #f5f4f0; --text: #1a1a18; --border: rgba(0,0,0,0.12); --radius: 10px; }
+    body { font-family: -apple-system, sans-serif; background: var(--bg-2); color: var(--text); padding: 20px; display: flex; justify-content: center; }
+    .card { background: var(--bg); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 450px; border: 1px solid var(--border); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    h1 { font-size: 22px; margin-bottom: 8px; text-align: center; color: var(--text); }
+    .sub { font-size: 13px; color: #666; text-align: center; margin-bottom: 20px; }
+    label { display: block; font-size: 11px; font-weight: bold; margin: 12px 0 6px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
+    select, textarea, input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-size: 15px; background: #fafafa; transition: border-color 0.2s; }
+    select:focus, textarea:focus, input:focus { border-color: var(--accent); outline: none; background: #fff; }
     textarea { min-height: 100px; resize: none; }
-    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9892' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
-    .prio-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .prio-btn { border: 0.5px solid var(--border-2); border-radius: var(--radius); padding: 9px 4px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; background: var(--bg-2); color: var(--text-2); transition: all 0.15s; }
-    .prio-btn[data-prio="low"].active   { background: #EAF3DE; color: #3B6D11; border-color: #639922; }
-    .prio-btn[data-prio="medium"].active { background: #FAEEDA; color: #854F0B; border-color: #BA7517; }
-    .prio-btn[data-prio="high"].active   { background: #FCEBEB; color: #A32D2D; border-color: #E24B4A; }
-    .submit-btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; margin-top: 0.5rem; }
-    .submit-btn:disabled { background: var(--bg-2); color: var(--text-2); }
-    .alert { display: none; border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1rem; text-align: center; }
-    .alert.success { background: #EAF3DE; border: 0.5px solid #639922; color: #3B6D11; }
-    .alert.error   { background: #FCEBEB; border: 0.5px solid #E24B4A; color: #A32D2D; }
-    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .qr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 1rem; }
-    .qr-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 10px; text-align: center; }
-    .qr-card-label { font-size: 10px; font-weight: 600; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .qr-canvas-wrap canvas { margin: 0 auto; }
+    .btn { width: 100%; background: var(--accent); color: white; border: none; padding: 16px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 24px; cursor: pointer; transition: opacity 0.2s; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .success { display:none; background: #e6fffa; color: #2c7a7b; border: 1px solid #81e6d9; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; }
   </style>
 </head>
 <body>
 
-<div class="wrapper">
-  <div class="header">
-    <div class="header-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/></svg></div>
-    <div><div class="header-title">MIT Service Desk</div></div>
-  </div>
+<div class="card">
+  <h1>MIT Service Desk</h1>
+  <p class="sub">Relate o problema para a equipe de TI</p>
+  
+  <div id="msg-ok" class="success">✔ Chamado enviado com sucesso!</div>
+  
+  <form id="form-chamado">
+    <label>Linha / Localização</label>
+    <select id="field-line" required>
+      <option value="" disabled selected>Selecione a linha...</option>
+    </select>
 
-  <div class="tabs" id="nav-tabs">
-    <div class="tab active" onclick="switchTab('form')">Chamado</div>
-    <div class="tab" onclick="switchTab('qr')">QR Admin</div>
-  </div>
+    <label>Categoria do Problema</label>
+    <select id="field-category" required>
+      <option value="" disabled selected>O que aconteceu?</option>
+      <option value="Problema no computador">Problema no computador</option>
+      <option value="Periférico defeituoso (Mause ou teclado)">Periférico defeituoso (Mouse/Teclado)</option>
+      <option value="Problema na impressão">Problema na impressão</option>
+      <option value="Erro ao acessar PC Factory">Erro ao acessar PC Factory</option>
+      <option value="Problema com a televisão">Problema com a televisão</option>
+      <option value="Dúvidas/Outro">Dúvidas/Outro</option>
+    </select>
 
-  <div id="view-form" class="view active">
-    <div class="line-badge" id="line-badge">Selecionar Linha</div>
-    <h1>Reportar problema</h1>
-    <p class="subtitle">O chamado será enviado para <span class="email-suporte-text"></span></p>
+    <label>Descrição Detalhada</label>
+    <textarea id="field-desc" required placeholder="Ex: Monitor piscando, teclado não digita..."></textarea>
 
-    <div id="alert-success" class="alert success">✔ Chamado aberto e registrado com sucesso!</div>
-    <div id="alert-error" class="alert error">✖ Erro ao enviar. Tente novamente.</div>
+    <label>Seu Nome</label>
+    <input type="text" id="field-name" required placeholder="Digite seu nome">
 
-    <form class="card" id="form-chamado">
-      <div class="field">
-        <label>Local / Linha</label>
-        <select name="linha" id="field-line" required></select>
-      </div>
-
-      <div class="field">
-        <label>Categoria</label>
-        <select name="categoria" id="field-category" required>
-          <option value="" disabled selected>O que houve?</option>
-          <option value="Problema no computador">Problema no computador</option>
-          <option value="Periférico defeituoso (Mause ou teclado)">Periférico defeituoso (Mouse/Teclado)</option>
-          <option value="Problema na impressão">Problema na impressão</option>
-          <option value="Erro ao acessar PC Factory">Erro ao acessar PC Factory</option>
-          <option value="Problema com a televisão">Problema com a televisão</option>
-          <option value="Dúvidas/Outro">Dúvidas/Outro</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Descrição</label>
-        <textarea name="descricao" id="field-desc" required placeholder="Explique o que aconteceu..."></textarea>
-      </div>
-
-      <div class="field">
-        <label>Foto do Problema (Opcional)</label>
-        <input type="file" id="field-photo" accept="image/*" capture="environment">
-      </div>
-
-      <div class="field">
-        <label>Prioridade</label>
-        <div class="prio-row">
-          <div class="prio-btn" data-prio="low" onclick="setPrio(this)">Baixa</div>
-          <div class="prio-btn active" data-prio="medium" onclick="setPrio(this)">Média</div>
-          <div class="prio-btn" data-prio="high" onclick="setPrio(this)">Alta</div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Seu Nome</label>
-        <input type="text" name="operador" id="field-name" required placeholder="Quem está relatando?">
-      </div>
-      
-      <button type="submit" class="submit-btn" id="submit-btn">Enviar Chamado</button>
-    </form>
-  </div>
-
-  <div id="view-qr" class="view" style="display:none;">
-    <div class="qr-grid" id="qr-grid"></div>
-  </div>
+    <button type="submit" id="btn-enviar" class="btn">ENVIAR CHAMADO</button>
+  </form>
 </div>
 
 <script type="module">
-  // Importa as bibliotecas modernas do Firebase
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
   import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-  // ================================================
-  // 1. CONFIGURAÇÕES - CHAVES
-  // ================================================
-  
-  // A) Configuração EmailJS
-  const EMAILJS_KEY = 'm3eKTfSB0VqQXTKNf';
-  const SERVICE_ID = 'service_orzpcie';
-  const TEMPLATE_ID = 'template_nk1u6e5';
-  const EMAIL_SUPORTE = 'vitorjung2005@hotmail.com';
-
-  // B) Configuração Firebase (Suas Chaves)
+  // 1. CONFIGURAÇÕES
   const firebaseConfig = {
     apiKey: "AIzaSyAck5mx4L0dzkcihFchV7-Oqt4fXGVyxVo",
     authDomain: "magna-service-desk.firebaseapp.com",
@@ -152,134 +73,60 @@
     measurementId: "G-YBLC6NTSL6"
   };
 
-  // Inicializa o Firebase e o Banco de Dados (Firestore)
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  emailjs.init("m3eKTfSB0VqQXTKNf");
 
-  // Lista de Linhas
-  const NOMES_DAS_LINHAS = [
-    "5s", "BACK PANEL GAMMA", "BACK PANEL HB", "BACK PANEL NB", "BOTINHA LH-RH", "B-SUV VERDE LH", "B-SUV VERDE RH", "CAIXA DE RODAS GAMMA LH", "CAIXA DE RODAS GAMMA RH", "CAIXA DE RODAS HB LH", "CAIXA DE RODAS HB LH-RH", "CAIXA DE RODAS HB RH", "CAIXA DE RODAS NB LH", "CAIXA DE RODAS NB RH", "CAVALO MARINHO LH", "CAVALO MARINHO RH", "COPINHO", "CXRD MIG HB", "EMBALAGEM P&A", "EMBALAGEM PSA", "EMBUCHAMENTO", "FRONT PSA", "GUTTER HB_ROOF HEADER", "KICK PANEL HB / POCKET HB", "KICK PANEL NB / PACKET SHELF", "POCKET NB / BACK PANEL NB", "PW - SILL ROXO LH", "PW - SILL ROXO RH", "PW - SILL VERDE LH", "PW - SILL VERDE RH", "PW _ B-SUV ROXO LH", "PW _ B-SUV ROXO RH", "PW _ B-SUV VERDE LH", "PW _ B-SUV VERDE RH", "PW PLATE - ASA_DELTA LH", "PW PLATE - ASA_DELTA RH", "PW PLATE GEM LH", "PW PLATE GEM RH", "PW06 - RAIL GAMMA LH", "PW06 - RAIL GAMMA RH", "PW06 - SILL 5 - CAPACETE LH", "PW06 - SILL 5 - CAPACETE RH", "PW06 - TV ASSOALHO (TV 4400) LH", "PW06 - TV ASSOALHO (TV 4400) RH", "PW07 - GUTTER LH", "PW07 - GUTTER RH", "PW07 - PLATE (SABONETEIRA)", "PW07 - RAIL GAMMA LH", "PW07 - RAIL GAMMA RH", "PW07 - REAR LH (CADEIRINHA)", "PW07 - REAR RH (CADEIRINHA)", "RAIL GAMMA LH-RH", "RAIL GEM LH-RH", "REAR 2 OP.20 / 50", "REAR 2 OP.40 / 60 / 70", "REAR 2 RQPS - SOLDA", "REAR MY19 - OP 20/40/50/60/70", "REAR MY19 - OP 80/85/RETRABALHO", "REAR MY19 - OP 80/85/RETRABALHO/EV", "REAR MY19 - OP EV", "REAR PM7 -", "REAR PM7 - OP RETRABALHO/EV", "ROCKER ABB LH-RH", "TRAVESSA 4400", "TRAVESSA DO RADIADOR", "TRAVESSA SILL 5", "TRAVESSA SILL 5 PW 5"
-  ];
+  // 2. LISTA COMPLETA DAS 67 LINHAS
+  const LINHAS = ["5s", "BACK PANEL GAMMA", "BACK PANEL HB", "BACK PANEL NB", "BOTINHA LH-RH", "B-SUV VERDE LH", "B-SUV VERDE RH", "CAIXA DE RODAS GAMMA LH", "CAIXA DE RODAS GAMMA RH", "CAIXA DE RODAS HB LH", "CAIXA DE RODAS HB LH-RH", "CAIXA DE RODAS HB RH", "CAIXA DE RODAS NB LH", "CAIXA DE RODAS NB RH", "CAVALO MARINHO LH", "CAVALO MARINHO RH", "COPINHO", "CXRD MIG HB", "EMBALAGEM P&A", "EMBALAGEM PSA", "EMBUCHAMENTO", "FRONT PSA", "GUTTER HB_ROOF HEADER", "KICK PANEL HB / POCKET HB", "KICK PANEL NB / PACKET SHELF", "POCKET NB / BACK PANEL NB", "PW - SILL ROXO LH", "PW - SILL ROXO RH", "PW - SILL VERDE LH", "PW - SILL VERDE RH", "PW _ B-SUV ROXO LH", "PW _ B-SUV ROXO RH", "PW _ B-SUV VERDE LH", "PW _ B-SUV VERDE RH", "PW PLATE - ASA_DELTA LH", "PW PLATE - ASA_DELTA RH", "PW PLATE GEM LH", "PW PLATE GEM RH", "PW06 - RAIL GAMMA LH", "PW06 - RAIL GAMMA RH", "PW06 - SILL 5 - CAPACETE LH", "PW06 - SILL 5 - CAPACETE RH", "PW06 - TV ASSOALHO (TV 4400) LH", "PW06 - TV ASSOALHO (TV 4400) RH", "PW07 - GUTTER LH", "PW07 - GUTTER RH", "PW07 - PLATE (SABONETEIRA)", "PW07 - RAIL GAMMA LH", "PW07 - RAIL GAMMA RH", "PW07 - REAR LH (CADEIRINHA)", "PW07 - REAR RH (CADEIRINHA)", "RAIL GAMMA LH-RH", "RAIL GEM LH-RH", "REAR 2 OP.20 / 50", "REAR 2 OP.40 / 60 / 70", "REAR 2 RQPS - SOLDA", "REAR MY19 - OP 20/40/50/60/70", "REAR MY19 - OP 80/85/RETRABALHO", "REAR MY19 - OP 80/85/RETRABALHO/EV", "REAR MY19 - OP EV", "REAR PM7 -", "REAR PM7 - OP RETRABALHO/EV", "ROCKER ABB LH-RH", "TRAVESSA 4400", "TRAVESSA DO RADIADOR", "TRAVESSA SILL 5", "TRAVESSA SILL 5 PW 5"];
 
-  emailjs.init(EMAILJS_KEY);
-  document.querySelectorAll('.email-suporte-text').forEach(el => el.textContent = EMAIL_SUPORTE);
+  const sel = document.getElementById('field-line');
+  LINHAS.forEach(l => {
+    const opt = document.createElement('option');
+    opt.value = l;
+    opt.textContent = l;
+    sel.appendChild(opt);
+  });
 
-  let selectedPrio = 'medium';
-  
-  window.setPrio = function(el) {
-    document.querySelectorAll('.prio-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    selectedPrio = el.dataset.prio;
-  }
-
-  window.switchTab = function(t) {
-    document.getElementById('view-form').style.display = t === 'form' ? 'block' : 'none';
-    document.getElementById('view-qr').style.display = t === 'qr' ? 'block' : 'none';
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab.innerText.toLowerCase().includes(t)));
-    if(t === 'qr') renderQrs();
-  }
-
-  function initDropdown() {
-    const select = document.getElementById('field-line');
-    NOMES_DAS_LINHAS.forEach((n, i) => { select.innerHTML += `<option value="${i}">${n}</option>`; });
-  }
-
-  function checkUrlParams() {
-    const id = new URLSearchParams(window.location.search).get('id');
-    if(id && NOMES_DAS_LINHAS[id]) {
-      document.getElementById('field-line').value = id;
-      document.getElementById('line-badge').innerText = NOMES_DAS_LINHAS[id];
-    }
-  }
-
-  document.getElementById('field-line').onchange = (e) => {
-    document.getElementById('line-badge').innerText = NOMES_DAS_LINHAS[e.target.value];
-  };
-
-  function renderQrs() {
-    const grid = document.getElementById('qr-grid');
-    if(grid.innerHTML !== "") return;
-    const baseURL = window.location.origin + window.location.pathname.replace(/index\.html$/i, '');
-    NOMES_DAS_LINHAS.forEach((n, i) => {
-      const url = baseURL + "?id=" + i;
-      const div = document.createElement('div');
-      div.className = 'qr-card';
-      div.innerHTML = `<div class="qr-card-label" title="${n}">${n}</div><div id="qrc-${i}"></div>`;
-      grid.appendChild(div);
-      new QRCode(document.getElementById(`qrc-${i}`), { text: url, width: 80, height: 80 });
-    });
-  }
-
-  window.onload = () => {
-    const savedName = localStorage.getItem('operador_nome');
-    if(savedName) document.getElementById('field-name').value = savedName;
-    if(new URLSearchParams(window.location.search).get('admin') === '1') {
-      document.getElementById('nav-tabs').style.display = 'flex';
-    }
-    initDropdown();
-    checkUrlParams();
-  };
-
-  // ================================================
-  // 2. ENVIO HÍBRIDO (EMAILJS + FIREBASE)
-  // ================================================
+  // 3. EVENTO DE ENVIO
   document.getElementById('form-chamado').onsubmit = async (e) => {
     e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    const name = document.getElementById('field-name').value;
-    
-    localStorage.setItem('operador_nome', name);
+    const btn = document.getElementById('btn-enviar');
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner"></span>Processando...`;
+    btn.innerText = "Enviando Chamado...";
 
-    const linhaSelecionada = NOMES_DAS_LINHAS[document.getElementById('field-line').value];
-    const categoriaSelecionada = document.getElementById('field-category').value;
-    const descricaoProblema = document.getElementById('field-desc').value;
-    const prioridadeLabel = { low: 'Baixa', medium: 'Média', high: 'Alta' }[selectedPrio];
-
-    const templateParams = {
-      linha: linhaSelecionada,
-      categoria: categoriaSelecionada,
-      prioridade: prioridadeLabel,
-      descricao: descricaoProblema,
-      operador: name,
+    const dados = {
+      linha: document.getElementById('field-line').value,
+      categoria: document.getElementById('field-category').value,
+      descricao: document.getElementById('field-desc').value,
+      operador: document.getElementById('field-name').value,
       data: new Date().toLocaleString('pt-BR')
     };
 
     try {
-      // Disparo 1: Envia o E-mail oficial
-      await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
-      
-      // Disparo 2: Salva no Firebase (Firestore)
+      // DISPARO 1: EMAILJS (Cópia oficial)
+      await emailjs.send("service_orzpcie", "template_nk1u6e5", dados);
+
+      // DISPARO 2: FIREBASE (Para apitar no painel)
       await addDoc(collection(db, "chamados_fabrica"), {
-        linha: linhaSelecionada,
-        categoria: categoriaSelecionada,
-        prioridade: prioridadeLabel,
-        descricao: descricaoProblema,
-        operador: name,
+        ...dados,
         status: "Aberto",
-        dataCriacao: serverTimestamp() 
+        prioridade: "Média",
+        dataCriacao: serverTimestamp()
       });
 
-      // Sucesso
-      document.getElementById('alert-success').style.display = 'block';
-      if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
-      
-      setTimeout(() => {
-        document.getElementById('alert-success').style.display = 'none';
-        btn.textContent = 'Enviar Chamado';
-        btn.disabled = false;
-        document.getElementById('field-desc').value = '';
-        document.getElementById('field-category').value = '';
-        document.getElementById('field-photo').value = ''; 
-        window.setPrio(document.querySelector('.prio-btn[data-prio="medium"]'));
-      }, 4000);
+      // FEEDBACK DE SUCESSO
+      document.getElementById('msg-ok').style.display = 'block';
+      document.getElementById('form-chamado').reset();
+      window.scrollTo(0,0);
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
     } catch (err) {
-      console.error("Erro no envio:", err);
-      document.getElementById('alert-error').style.display = 'block';
+      alert("Erro ao enviar: " + err.message);
+    } finally {
       btn.disabled = false;
-      btn.innerText = "Tentar novamente";
+      btn.innerText = "ENVIAR CHAMADO";
+      setTimeout(() => document.getElementById('msg-ok').style.display = 'none', 5000);
     }
   };
 </script>
