@@ -62,7 +62,7 @@
       <p class="text-sm" style="color: var(--text-sub)">Suporte técnico rápido Magna</p>
     </header>
 
-    <div id="msg-ok" class="hidden bg-emerald-100 text-emerald-800 border border-emerald-300 p-4 rounded-xl text-center font-bold mb-6">✓ Chamado enviado!</div>
+    <div id="msg-ok" class="hidden bg-emerald-100 text-emerald-800 border border-emerald-300 p-4 rounded-xl text-center font-bold mb-6">✓ Chamado enviado com sucesso!</div>
 
     <form id="form-chamado">
       <div class="mb-5">
@@ -104,32 +104,39 @@
   <div class="no-print flex justify-between items-center bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 mb-8">
     <div>
       <h1 class="text-2xl font-bold">Etiquetas QR — Magna</h1>
-      <p class="text-slate-500 text-sm">Imprima para fixar nas linhas de produção</p>
+      <p class="text-slate-500 text-sm">Imprima para fixar nas linhas de produção e áreas de apoio</p>
     </div>
-    <button onclick="window.print()" class="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-6 py-3 rounded-xl font-bold">🖨️ Imprimir</button>
+    <button onclick="window.print()" class="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-6 py-3 rounded-xl font-bold">🖨️ Imprimir Etiquetas</button>
   </div>
 
   <div id="qr-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4"></div>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-
-  // 1. CONFIGURAÇÕES FIREBASE
-  const firebaseConfig = {
-    apiKey: "AIzaSyAck5mx4L0dzkcihFchV7-Oqt4fXGVyxVo",
-    authDomain: "magna-service-desk.firebaseapp.com",
-    projectId: "magna-service-desk",
-    storageBucket: "magna-service-desk.firebasestorage.app",
-    messagingSenderId: "377327792574",
-    appId: "1:377327792574:web:c9b8623342b71fe89289ef"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const LINHAS = ["5s", "BACK PANEL GAMMA", "BACK PANEL HB", "BACK PANEL NB", "BOTINHA LH-RH", "B-SUV VERDE LH", "B-SUV VERDE RH", "CAIXA DE RODAS GAMMA LH", "CAIXA DE RODAS GAMMA RH", "CAIXA DE RODAS HB LH", "CAIXA DE RODAS HB LH-RH", "CAIXA DE RODAS HB RH", "CAIXA DE RODAS NB LH", "CAIXA DE RODAS NB RH", "CAVALO MARINHO LH", "CAVALO MARINHO RH", "COPINHO", "CXRD MIG HB", "EMBALAGEM P&A", "EMBALAGEM PSA", "EMBUCHAMENTO", "FRONT PSA", "GUTTER HB_ROOF HEADER", "KICK PANEL HB / POCKET HB", "KICK PANEL NB / PACKET SHELF", "POCKET NB / BACK PANEL NB", "PW - SILL ROXO LH", "PW - SILL ROXO RH", "PW - SILL VERDE LH", "PW - SILL VERDE RH", "PW _ B-SUV ROXO LH", "PW _ B-SUV ROXO RH", "PW _ B-SUV VERDE LH", "PW _ B-SUV VERDE RH", "PW PLATE - ASA_DELTA LH", "PW PLATE - ASA_DELTA RH", "PW PLATE GEM LH", "PW PLATE GEM RH", "PW06 - RAIL GAMMA LH", "PW06 - RAIL GAMMA RH", "PW06 - SILL 5 - CAPACETE LH", "PW06 - SILL 5 - CAPACETE RH", "PW06 - TV ASSOALHO (TV 4400) LH", "PW06 - TV ASSOALHO (TV 4400) RH", "PW07 - GUTTER LH", "PW07 - GUTTER RH", "PW07 - PLATE (SABONETEIRA)", "PW07 - RAIL GAMMA LH", "PW07 - RAIL GAMMA RH", "PW07 - REAR LH (CADEIRINHA)", "PW07 - REAR RH (CADEIRINHA)", "RAIL GAMMA LH-RH", "RAIL GEM LH-RH", "REAR 2 OP.20 / 50", "REAR 2 OP.40 / 60 / 70", "REAR 2 RQPS - SOLDA", "REAR MY19 - OP 20/40/50/60/70", "REAR MY19 - OP 80/85/RETRABALHO", "REAR MY19 - OP 80/85/RETRABALHO/EV", "REAR MY19 - OP EV", "REAR PM7 -", "REAR PM7 - OP RETRABALHO/EV", "ROCKER ABB LH-RH", "TRAVESSA 4400", "TRAVESSA DO RADIADOR", "TRAVESSA SILL 5", "TRAVESSA SILL 5 PW 5"];
+<script>
+  // 1. DADOS DE LOCALIZAÇÃO (Atualizado com Almoxarifado e Expedição em ordem alfabética)
+  const LINHAS = [
+    "5s", "ALMOXARIFADO", "BACK PANEL GAMMA", "BACK PANEL HB", "BACK PANEL NB", 
+    "BOTINHA LH-RH", "B-SUV VERDE LH", "B-SUV VERDE RH", "CAIXA DE RODAS GAMMA LH", 
+    "CAIXA DE RODAS GAMMA RH", "CAIXA DE RODAS HB LH", "CAIXA DE RODAS HB LH-RH", 
+    "CAIXA DE RODAS HB RH", "CAIXA DE RODAS NB LH", "CAIXA DE RODAS NB RH", 
+    "CAVALO MARINHO LH", "CAVALO MARINHO RH", "COPINHO", "CXRD MIG HB", 
+    "EMBALAGEM P&A", "EMBALAGEM PSA", "EMBUCHAMENTO", "EXPEDIÇÃO", "FRONT PSA", 
+    "GUTTER HB_ROOF HEADER", "KICK PANEL HB / POCKET HB", "KICK PANEL NB / PACKET SHELF", 
+    "POCKET NB / BACK PANEL NB", "PW - SILL ROXO LH", "PW - SILL ROXO RH", 
+    "PW - SILL VERDE LH", "PW - SILL VERDE RH", "PW _ B-SUV ROXO LH", "PW _ B-SUV ROXO RH", 
+    "PW _ B-SUV VERDE LH", "PW _ B-SUV VERDE RH", "PW PLATE - ASA_DELTA LH", 
+    "PW PLATE - ASA_DELTA RH", "PW PLATE GEM LH", "PW PLATE GEM RH", 
+    "PW06 - RAIL GAMMA LH", "PW06 - RAIL GAMMA RH", "PW06 - SILL 5 - CAPACETE LH", 
+    "PW06 - SILL 5 - CAPACETE RH", "PW06 - TV ASSOALHO (TV 4400) LH", 
+    "PW06 - TV ASSOALHO (TV 4400) RH", "PW07 - GUTTER LH", "PW07 - GUTTER RH", 
+    "PW07 - PLATE (SABONETEIRA)", "PW07 - RAIL GAMMA LH", "PW07 - RAIL GAMMA RH", 
+    "PW07 - REAR LH (CADEIRINHA)", "PW07 - REAR RH (CADEIRINHA)", "RAIL GAMMA LH-RH", 
+    "RAIL GEM LH-RH", "REAR 2 OP.20 / 50", "REAR 2 OP.40 / 60 / 70", "REAR 2 RQPS - SOLDA", 
+    "REAR MY19 - OP 20/40/50/60/70", "REAR MY19 - OP 80/85/RETRABALHO", 
+    "REAR MY19 - OP 80/85/RETRABALHO/EV", "REAR MY19 - OP EV", "REAR PM7 -", 
+    "REAR PM7 - OP RETRABALHO/EV", "ROCKER ABB LH-RH", "TRAVESSA 4400", 
+    "TRAVESSA DO RADIADOR", "TRAVESSA SILL 5", "TRAVESSA SILL 5 PW 5"
+  ];
 
   // 2. ROTEAMENTO DE VISÃO
   const urlParams = new URLSearchParams(window.location.search);
@@ -143,7 +150,7 @@
     const sel = document.getElementById('field-line');
     LINHAS.forEach(l => { sel.innerHTML += `<option value="${l}">${l}</option>`; });
 
-    // Auto-selecionar linha pelo QR Code
+    // Auto-selecionar linha pelo QR Code da URL
     const linhaUrl = urlParams.get('linha');
     if (linhaUrl) sel.value = linhaUrl;
 
@@ -166,7 +173,7 @@
       const urlPowerAutomate = "https://defaultc760270cf3da4cfa973703808ef557.9f.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/58b00928225f4900b9b1670e214d87e6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=MjwkH6YfR8Y2H_AKglQTnsQDXhHbeAf_cpT6kxKNXKQ";
 
       try {
-        // Envio para o Power Automate via requisição HTTP POST
+        // Envio para o Power Automate
         const respostaHTTP = await fetch(urlPowerAutomate, {
             method: "POST",
             headers: {
@@ -179,9 +186,10 @@
             throw new Error("Falha na comunicação com o sistema de chamados.");
         }
 
-        // Salva os dados no Firebase simultaneamente
-        await addDoc(collection(db, "chamados_fabrica"), { ...payload, status: "Aberto", dataCriacao: serverTimestamp() });
-        
+        // [ FUTURA INTEGRAÇÃO AZURE AQUI ]
+        // Exemplo: await fetch("URL_DO_SEU_AZURE_FUNCTIONS", { ... });
+
+        // Sucesso na tela
         document.getElementById('msg-ok').classList.remove('hidden');
         document.getElementById('form-chamado').reset();
         window.scrollTo(0, 0);
@@ -196,7 +204,7 @@
   }
 
   // ==========================================
-  // LÓGICA DO ADMIN (GERADOR QR)
+  // LÓGICA DO ADMIN (GERADOR DE ETIQUETAS QR)
   // ==========================================
   if (view === 'admin') {
     const grid = document.getElementById('qr-grid');
